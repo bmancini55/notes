@@ -6,16 +6,13 @@ This BIP:
 
 - Defines xpub/xprv encodings which are HD extended keys for legacy addresses on mainnet
 - Defines child key derivation functions for:
-
   - private key => private key
   - private key => public key
   - public key => public key (non-hardened addresses only)
-
 - Can define up to 255 accounts/depths
 - Can define 2<sup>31</sup> normal child keys and 2<sup>31</sup> hardened chlid keys
 - Normal keys are indexed 0 through 2<sup>31</sup>-1
 - Hardened keys are indexed 2<sup>31</sup> through 2<sup>32</sup>-1
-
 - Derivation uses HMAC-SHA512.
 - The general idea of derivation is that we use the `chain_code` as the
   key, then either the public key + index or private key + index as the
@@ -23,6 +20,13 @@ This BIP:
 - The result 64-bytes are split in 2. The first half is `tweakAdd` by
   the existing key and becomes the child key. The second half is the child
   `chain_code`.
+
+### Hierarchy Recommendations
+
+- depth 0 - master key
+- depth 1 - accounts: m/0, m/1, m/i
+- depth 2 - chains : m/0/0
+- depth 3 - addresses
 
 ### Normal vs Hardened:
 
@@ -45,6 +49,17 @@ Base58Check is used to define the
 32 bytes: chain code
 33 bytes: public key or private key (0x00 prefix)
 ```
+
+### Master Key Generation
+
+- Generate a seed `S` (recommend 256bits)
+- Calculate `l = HMAC-SHA512(Key = "Bitcoin seed", Data = S)`
+- Split `l` into two 32-byte sequences `l_L` and `l_R`
+- Master secret i= `l_L`
+- Master chain code = `l_R`
+
+If `l_L` is 0 or >= n, master key is invalid and you should generate
+a new seed.
 
 ### Private Key => Child Private Key
 
